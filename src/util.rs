@@ -24,3 +24,14 @@ where
         _ => collection.to_owned(),
     }
 }
+
+pub fn set(collection: &mut Value, path: &[&str], value: Value) {
+    let modify = path.iter().fold(collection, |result, key| match result {
+        Value::Array(a) => match key.parse::<usize>() {
+            Ok(index) => &mut a[index],
+            Err(_) => &mut a[0],
+        },
+        _ => &mut result[key],
+    });
+    *modify = value;
+}

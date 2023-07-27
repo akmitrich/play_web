@@ -8,8 +8,12 @@ pub struct World {
 }
 
 impl World {
-    pub async fn info(&self) -> Value {
-        self.value.clone()
+    pub fn info(&self) -> &Value {
+        &self.value
+    }
+
+    pub fn update(&mut self) -> &mut Value {
+        &mut self.value
     }
 
     pub async fn run(&self) -> Value {
