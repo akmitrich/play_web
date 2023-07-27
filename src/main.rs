@@ -1,17 +1,13 @@
-use std::sync::Arc;
+mod util;
+mod world;
 
 use actix_web::middleware::Logger;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
-use serde_json::{json, Value};
-
-#[derive(Debug)]
-struct Script {
-    value: Value,
-}
+use std::sync::Arc;
 
 #[derive(Debug)]
 struct AppState {
-    map: dashmap::DashMap<String, Arc<Script>>,
+    map: dashmap::DashMap<String, Arc<world::World>>,
 }
 
 #[actix_web::main]
@@ -22,25 +18,24 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let data = AppState::new();
-    data.map.insert(
-        "abc".into(),
-        Arc::new(Script {
-            value: json!("Support ASCII"),
-        }),
-    );
+    data.map.insert("abc".into(), Arc::new(Default::default()));
 
     let app_state = web::Data::new(data);
 
-    println!("🚀 Server started successfully");
+    println!(
+        "🚀 Server started successfully, {}",
+        u16::from_le_bytes(*b"RR")
+    );
 
     HttpServer::new(move || {
         App::new()
             .app_data(app_state.clone())
             .service(health_checker_handler)
-            .service(play)
+            .service(points_on_section)
+            .service(world_info)
             .wrap(Logger::default())
     })
-    .bind(("127.0.0.1", 6969))?
+    .bind(("127.0.0.1", 21074))?
     .run()
     .await
 }
@@ -56,15 +51,25 @@ async fn health_checker_handler() -> impl Responder {
     HttpResponse::Ok().json(response_json)
 }
 
-#[get("/api/state/{index}/play")]
-async fn play(index: web::Path<String>, state: web::Data<AppState>) -> HttpResponse {
-    let actor = state.as_ref().fetch(index.as_ref()).unwrap();
-    println!("Play at {:?}:\n{:?}", index.as_ref(), actor.run());
-    HttpResponse::Ok().finish()
+#[get("/api/world/{index}/sections/{section}/points")]
+async fn points_on_section(
+    index: web::Path<(String, String)>,
+    state: web::Data<AppState>,
+) -> HttpResponse {
+    let (world_id, section_id) = index.into_inner();
+    let world = state.as_ref().fetch(world_id.as_str()).unwrap();
+    let map = world.info().await;
+    let ground = util::get(&map, &["railroad", "ground"]);
+    let section = util::get(ground, &["sections", section_id.as_str()]);
+    let resp = world::ground::points_on_section(ground, section).await;
+    HttpResponse::Ok().json(resp)
 }
 
-trait Fetch<'a> {
-    fn fetch(&'a self, key: &str) -> Option<Arc<Script>>;
+#[get("/api/world/{index}/info")]
+async fn world_info(index: web::Path<String>, state: web::Data<AppState>) -> HttpResponse {
+    let world = state.as_ref().fetch(index.as_ref()).unwrap();
+    let resp = world.info().await;
+    HttpResponse::Ok().json(resp)
 }
 
 impl AppState {
@@ -74,16 +79,16 @@ impl AppState {
         }
     }
 }
-impl<'a> Fetch<'a> for AppState {
-    fn fetch(&'a self, key: &str) -> Option<Arc<Script>> {
+impl AppState {
+    fn fetch(&self, key: &str) -> Option<Arc<world::World>> {
         let x = self.map.get(key)?;
         Some(Arc::clone(x.value()))
     }
-}
 
-impl Script {
-    pub fn run(&self) -> Value {
-        println!(" RUNNING {:?}", self);
-        self.value.clone()
+    fn first(&self) -> Option<Arc<world::World>> {
+        self.map
+            .iter()
+            .next()
+            .map(|entry| Arc::clone(entry.value()))
     }
 }
