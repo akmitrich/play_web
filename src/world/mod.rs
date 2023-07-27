@@ -46,7 +46,8 @@ impl Default for World {
                         },
                         "sections": {
                             "ea9f4fe9-89bd-4317-8450-73904e9608d9": {
-                                "points": ["efcb3338-d39f-47e4-af10-e52b8927f0bf"]
+                                "points": ["efcb3338-d39f-47e4-af10-e52b8927f0bf"],
+                                "rolling": [],
                             }
                         }
                     },

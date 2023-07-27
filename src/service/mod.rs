@@ -19,7 +19,7 @@ pub fn main_factory(app: &mut ServiceConfig) {
 
 #[get("/healthchecker")]
 async fn health_checker_handler() -> impl Responder {
-    const MESSAGE: &str = "Build Simple CRUD API with Rust and Actix Web";
+    const MESSAGE: &str = "Build Simple Play Server with Rust and Actix Web";
 
     let response_json = serde_json::json! ({
         "status": "success",
