@@ -10,6 +10,16 @@ pub fn get<'a>(collection: &'a Value, path: &[&str]) -> &'a Value {
     })
 }
 
+pub fn get_mut<'a>(collection: &'a mut Value, path: &[&str]) -> &'a mut Value {
+    path.iter().fold(collection, |result, key| match result {
+        Value::Array(a) => match key.parse::<usize>() {
+            Ok(index) => &mut a[index],
+            Err(_) => &mut a[0],
+        },
+        _ => &mut result[key],
+    })
+}
+
 pub fn map<F>(collection: &Value, mut f: F) -> Value
 where
     F: FnMut(&Value) -> Value,
@@ -26,12 +36,6 @@ where
 }
 
 pub fn set(collection: &mut Value, path: &[&str], value: Value) {
-    let modify = path.iter().fold(collection, |result, key| match result {
-        Value::Array(a) => match key.parse::<usize>() {
-            Ok(index) => &mut a[index],
-            Err(_) => &mut a[0],
-        },
-        _ => &mut result[key],
-    });
+    let modify = get_mut(collection, path);
     *modify = value;
 }

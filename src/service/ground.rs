@@ -17,9 +17,8 @@ async fn points_on_section(
 ) -> HttpResponse {
     let (world_id, section_id) = index.into_inner();
     let world = state.as_ref().fetch(world_id.as_str()).unwrap();
-    let map = world.info();
-    let ground = util::get(map, &["railroad", "ground"]);
-    let section = util::get(ground, &["sections", section_id.as_str()]);
+    let ground = world.ground();
+    let section = crate::world::ground::section_by_id(ground, section_id.as_str()).await;
     let resp = crate::world::ground::points_on_section(ground, section).await;
     HttpResponse::Ok().json(resp)
 }
@@ -31,9 +30,10 @@ async fn update_point(
 ) -> HttpResponse {
     let (world_id, point_id, label) = path.into_inner();
     let mut world = state.fetch_mut(&world_id).unwrap();
+    let ground = world.ground_mut();
     util::set(
-        world.update(),
-        &["railroad", "ground", "points", point_id.as_str(), "label"],
+        crate::world::ground::points_mut(ground).await,
+        &[point_id.as_str(), "label"],
         serde_json::json!(label),
     );
     HttpResponse::Ok().body("OK")
