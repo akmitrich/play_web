@@ -34,6 +34,12 @@ async fn health_checker_handler() -> impl Responder {
 async fn world_info(index: web::Path<String>, state: web::Data<AppState>) -> impl Responder {
     let world = state.as_ref().fetch(index.as_ref()).unwrap();
     let resp = world.info();
+    let schedule = world.schedule();
+    eprintln!(
+        "Started: {:?}\nNow: {:?}",
+        crate::world::schedule::get_start(schedule),
+        crate::world::schedule::get_current(schedule)
+    );
     HttpResponse::Ok().json(resp)
 }
 
@@ -47,6 +53,5 @@ async fn put_world(
         Some(mut world) => *world.update() = data.0,
         None => state.update(index.as_str(), crate::world::World::new(data.0)),
     }
-
-    HttpResponse::Accepted().body("Accepted.")
+    HttpResponse::Accepted().json(uuid::Uuid::new_v4().as_bytes())
 }

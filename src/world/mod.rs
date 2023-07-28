@@ -1,6 +1,9 @@
 pub mod ground;
+pub mod schedule;
 
 use serde_json::{json, Value};
+
+use crate::util;
 
 #[derive(Debug)]
 pub struct World {
@@ -21,11 +24,15 @@ impl World {
     }
 
     pub fn ground(&self) -> &Value {
-        crate::util::get(&self.value, &["railroad", "ground"])
+        util::get(&self.value, &["railroad", "ground"])
     }
 
     pub fn ground_mut(&mut self) -> &mut Value {
-        crate::util::get_mut(&mut self.value, &["railroad", "ground"])
+        util::get_mut(&mut self.value, &["railroad", "ground"])
+    }
+
+    pub fn schedule(&self) -> &Value {
+        util::get(&self.value, &["railroad", "schedule"])
     }
 
     pub async fn _run(&self) -> Value {

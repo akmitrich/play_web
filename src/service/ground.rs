@@ -1,6 +1,6 @@
 pub use super::AppState;
-use crate::util;
 use actix_web::{get, post, web, HttpResponse};
+use serde_json::Value;
 
 pub fn ground_factory(app: &mut web::ServiceConfig) {
     app.service(update_point).service(points_on_section);
@@ -19,18 +19,20 @@ async fn points_on_section(
     HttpResponse::Ok().json(resp)
 }
 
-#[post("/{index}/ground/points/{point}/{label}")]
+#[post("/{index}/ground/points/{point}/label")]
 async fn update_point(
-    path: web::Path<(String, String, String)>,
+    path: web::Path<(String, String)>,
     state: web::Data<AppState>,
+    label: web::Json<Value>,
 ) -> HttpResponse {
-    let (world_id, point_id, label) = path.into_inner();
+    let (world_id, point_id) = path.into_inner();
     let mut world = state.fetch_mut(&world_id).unwrap();
     let ground = world.ground_mut();
-    util::set(
+    crate::world::ground::set_label(
         crate::world::ground::points_mut(ground).await,
-        &[point_id.as_str(), "label"],
-        serde_json::json!(label),
-    );
+        point_id.as_str(),
+        label.0,
+    )
+    .await;
     HttpResponse::Ok().body("OK")
 }
