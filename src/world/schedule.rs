@@ -13,7 +13,7 @@ pub fn get_current(schedule: &Value) -> Option<chrono::DateTime<chrono::Local>> 
     Some(start + chrono::Duration::seconds(seconds))
 }
 
-pub fn single_step(schedule: &mut Value) {
+pub fn advance_by_one(schedule: &mut Value) {
     let current = util::get_mut(schedule, &["current"]);
     if let Value::Number(num) = current {
         *current = json!(num.as_u64().unwrap() + 1);
