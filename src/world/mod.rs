@@ -1,4 +1,5 @@
 pub mod ground;
+pub mod meta;
 pub mod schedule;
 
 use serde_json::{json, Value};
@@ -21,6 +22,14 @@ impl World {
 
     pub fn update(&mut self) -> &mut Value {
         &mut self.value
+    }
+
+    pub fn meta(&self) -> &Value {
+        util::get(&self.value, &["railroad", "meta"])
+    }
+
+    pub fn meta_mut(&mut self) -> &mut Value {
+        util::get_mut(&mut self.value, &["railroad", "meta"])
     }
 
     pub fn ground(&self) -> &Value {

@@ -8,6 +8,7 @@ pub fn get_start(schedule: &Value) -> Option<chrono::DateTime<chrono::Local>> {
 
 pub fn get_current(schedule: &Value) -> Option<chrono::DateTime<chrono::Local>> {
     let start = get_start(schedule)?;
-    let seconds = serde_json::from_value(util::get(schedule, &["current"]).to_owned()).unwrap_or(0);
+    let current = util::get(schedule, &["current"]);
+    let seconds = serde_json::from_value(current.to_owned()).unwrap_or(0);
     Some(start + chrono::Duration::seconds(seconds))
 }

@@ -7,7 +7,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 pub use app_state::AppState;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 pub fn main_factory(app: &mut ServiceConfig) {
     app.service(
@@ -49,9 +49,13 @@ async fn put_world(
     state: web::Data<AppState>,
     data: web::Json<Value>,
 ) -> impl Responder {
-    match state.as_ref().fetch_mut(index.as_ref()) {
+    match state.fetch_mut(index.as_str()) {
         Some(mut world) => *world.update() = data.0,
         None => state.update(index.as_str(), crate::world::World::new(data.0)),
     }
-    HttpResponse::Accepted().json(uuid::Uuid::new_v4().as_bytes())
+    let mut world = state.fetch_mut(index.as_str()).unwrap();
+    crate::world::meta::set_leader_token(world.meta_mut(), uuid::Uuid::new_v4());
+    HttpResponse::Accepted().json(
+        json!({"leader_token": crate::world::meta::get_leader_token(world.meta()).unwrap().as_bytes()}),
+    )
 }
