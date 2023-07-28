@@ -16,8 +16,17 @@ impl World {
         Self { value: data }
     }
 
-    pub fn info(&self) -> &Value {
-        &self.value
+    pub fn info(&self, auth_token: Option<&str>) -> Value {
+        if self.check_auth(auth_token) {
+            return self.value.to_owned();
+        }
+        json!({
+            "railroad":{
+                "ground": self.ground(),
+                "rolling": self.rolling(),
+                "schedule": self.schedule(),
+            }
+        })
     }
 
     pub fn update(&mut self) -> &mut Value {
@@ -40,12 +49,43 @@ impl World {
         util::get_mut(&mut self.value, &["railroad", "ground"])
     }
 
+    pub fn rolling(&self) -> &Value {
+        util::get(&self.value, &["railroad", "rolling"])
+    }
+
     pub fn schedule(&self) -> &Value {
         util::get(&self.value, &["railroad", "schedule"])
     }
 
-    pub async fn _run(&self) -> Value {
-        Value::Null
+    pub fn schedule_mut(&mut self) -> &mut Value {
+        util::get_mut(&mut self.value, &["railroad", "schedule"])
+    }
+
+    pub async fn run(&mut self, auth_token: Option<&str>, steps: u64) -> Option<()> {
+        if !self.check_auth(auth_token) {
+            return None;
+        }
+        let schedule = self.schedule_mut();
+        for _ in 0..steps {
+            schedule::single_step(schedule);
+        }
+        Some(())
+    }
+}
+
+impl World {
+    fn check_auth(&self, _token: Option<&str>) -> bool {
+        true
+        // if let Some(auth_token) =
+        //     token.and_then(|auth_token| uuid::Uuid::parse_str(auth_token).ok())
+        // {
+        //     if let Some(leader) = meta::get_leader_token(self.meta()) {
+        //         if auth_token == leader {
+        //             return true;
+        //         }
+        //     }
+        // }
+        // false
     }
 }
 
