@@ -72,7 +72,7 @@ async fn run(
     data: web::Query<Value>,
 ) -> impl Responder {
     let auth_token = extract_auth_token(&req);
-    let steps = dbg!(data)
+    let steps = data
         .0
         .get("steps")
         .and_then(|steps| steps.as_str())

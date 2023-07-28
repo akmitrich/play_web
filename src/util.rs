@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{json, Value};
 
 pub fn get<'a>(collection: &'a Value, path: &[&str]) -> &'a Value {
     path.iter().fold(collection, |result, key| match result {
@@ -38,4 +38,55 @@ where
 pub fn set(collection: &mut Value, path: &[&str], value: Value) {
     let modify = get_mut(collection, path);
     *modify = value;
+}
+
+pub fn get_num(collection: &Value, path: &[&str]) -> Option<f64> {
+    if let Value::Number(num) = get(collection, path) {
+        num.as_f64()
+    } else {
+        None
+    }
+}
+
+pub fn set_num(collection: &mut Value, path: &[&str], value: f64) {
+    let num_val = json!(value);
+    set(collection, path, num_val);
+}
+
+pub fn iterate<F>(collection: &Value, f: F)
+where
+    F: Fn(&Value),
+{
+    match collection {
+        Value::Array(a) => {
+            for v in a {
+                f(v)
+            }
+        }
+        Value::Object(o) => {
+            for v in o.values() {
+                f(v)
+            }
+        }
+        _ => {}
+    }
+}
+
+pub fn iterate_mut<F>(collection: &mut Value, f: F)
+where
+    F: Fn(&mut Value),
+{
+    match collection {
+        Value::Array(a) => {
+            for v in a {
+                f(v)
+            }
+        }
+        Value::Object(o) => {
+            for v in o.values_mut() {
+                f(v)
+            }
+        }
+        _ => {}
+    }
 }

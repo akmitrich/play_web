@@ -1,5 +1,5 @@
 use crate::util;
-use serde_json::{json, Value};
+use serde_json::Value;
 
 pub fn get_start(schedule: &Value) -> Option<chrono::DateTime<chrono::Local>> {
     let start = util::get(schedule, &["start"]);
@@ -14,8 +14,9 @@ pub fn get_current(schedule: &Value) -> Option<chrono::DateTime<chrono::Local>> 
 }
 
 pub fn advance_by_one(schedule: &mut Value) {
-    let current = util::get_mut(schedule, &["current"]);
-    if let Value::Number(num) = current {
-        *current = json!(num.as_u64().unwrap() + 1);
+    let path = ["current"];
+    let next_step = util::get_num(schedule, &path).map(|x| x + 1.);
+    if let Some(next) = next_step {
+        util::set_num(schedule, &path, next);
     }
 }
