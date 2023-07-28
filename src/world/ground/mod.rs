@@ -1,12 +1,10 @@
 use serde_json::Value;
 
-pub async fn section_by_id<'a>(ground: &'a Value, section_id: &str) -> &'a Value {
-    crate::util::get(ground, &["sections", section_id])
-}
+mod point;
+mod section;
 
-pub async fn points_mut(ground: &mut Value) -> &mut Value {
-    crate::util::get_mut(ground, &["points"])
-}
+pub use point::points_mut;
+pub use section::section_by_id;
 
 pub async fn points_on_section(ground: &Value, section: &Value) -> Value {
     let points = crate::util::get(dbg!(section), &["points"]);

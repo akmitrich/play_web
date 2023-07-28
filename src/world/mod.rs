@@ -8,11 +8,15 @@ pub struct World {
 }
 
 impl World {
+    pub fn new(data: Value) -> Self {
+        Self { value: data }
+    }
+
     pub fn info(&self) -> &Value {
         &self.value
     }
 
-    pub fn _update(&mut self) -> &mut Value {
+    pub fn update(&mut self) -> &mut Value {
         &mut self.value
     }
 

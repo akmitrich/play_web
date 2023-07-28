@@ -1,12 +1,8 @@
 pub use super::AppState;
 use crate::util;
-use actix_web::{
-    get,
-    web::{self, ServiceConfig},
-    HttpResponse,
-};
+use actix_web::{get, post, web, HttpResponse};
 
-pub fn ground_factory(app: &mut ServiceConfig) {
+pub fn ground_factory(app: &mut web::ServiceConfig) {
     app.service(update_point).service(points_on_section);
 }
 
@@ -23,7 +19,7 @@ async fn points_on_section(
     HttpResponse::Ok().json(resp)
 }
 
-#[get("/{index}/ground/points/{point}/{label}")]
+#[post("/{index}/ground/points/{point}/{label}")]
 async fn update_point(
     path: web::Path<(String, String, String)>,
     state: web::Data<AppState>,

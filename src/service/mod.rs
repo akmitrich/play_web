@@ -2,17 +2,19 @@ mod app_state;
 mod ground;
 
 use actix_web::{
-    get,
+    get, put,
     web::{self, ServiceConfig},
     HttpResponse, Responder,
 };
 pub use app_state::AppState;
+use serde_json::Value;
 
 pub fn main_factory(app: &mut ServiceConfig) {
     app.service(
         web::scope("/api/world")
             .service(health_checker_handler)
             .service(world_info)
+            .service(put_world)
             .configure(ground::ground_factory),
     );
 }
@@ -33,4 +35,18 @@ async fn world_info(index: web::Path<String>, state: web::Data<AppState>) -> imp
     let world = state.as_ref().fetch(index.as_ref()).unwrap();
     let resp = world.info();
     HttpResponse::Ok().json(resp)
+}
+
+#[put("/{index}")]
+async fn put_world(
+    index: web::Path<String>,
+    state: web::Data<AppState>,
+    data: web::Json<Value>,
+) -> impl Responder {
+    match state.as_ref().fetch_mut(index.as_ref()) {
+        Some(mut world) => *world.update() = data.0,
+        None => state.update(index.as_str(), crate::world::World::new(data.0)),
+    }
+
+    HttpResponse::Accepted().body("Accepted.")
 }

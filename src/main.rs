@@ -15,7 +15,6 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let data = AppState::new();
-    data.update("abc", Default::default());
 
     let app_state = web::Data::new(data);
 
