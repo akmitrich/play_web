@@ -917,6 +917,7 @@ dependencies = [
  "chrono",
  "dashmap",
  "env_logger",
+ "log",
  "serde_json",
  "uuid",
 ]

@@ -10,7 +10,7 @@ use crate::service::{main_factory, AppState};
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     if std::env::var_os("RUST_LOG").is_none() {
-        std::env::set_var("RUST_LOG", "actix_web=debug");
+        std::env::set_var("RUST_LOG", "actix_web=debug, play_web=trace");
     }
     env_logger::init();
 
@@ -18,7 +18,7 @@ async fn main() -> std::io::Result<()> {
 
     let app_state = web::Data::new(data);
 
-    println!(
+    log::info!(
         "🚀 Server started successfully, {}",
         u16::from_le_bytes(*b"RR")
     );

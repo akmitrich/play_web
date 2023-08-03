@@ -105,8 +105,11 @@ impl World {
     }
 
     async fn do_move(&mut self) {
+        let delta_t = util::get(self.schedule(), &["delta_t"])
+            .as_f64()
+            .unwrap_or(1e-3);
         ground::do_move(self.ground_mut());
-        rolling::do_move(self.rolling_mut());
+        rolling::do_move(self.rolling_mut(), delta_t);
     }
 
     async fn after_move(&mut self) {
